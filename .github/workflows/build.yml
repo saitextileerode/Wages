@@ -1,0 +1,38 @@
+name: Build APK
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble project from flat files
+        run: |
+          mkdir -p proj/app/src/main/java/com/example/kanakku
+          mkdir -p proj/app/src/main/res/mipmap-anydpi-v26 proj/app/src/main/res/values proj/app/src/main/res/drawable proj/app/src/main/res/xml
+          mkdir -p proj/app/src/main/assets
+          cp build.gradle settings.gradle gradle.properties proj/
+          cp app-build.gradle proj/app/build.gradle
+          cp debug.keystore proj/app/
+          cp AndroidManifest.xml proj/app/src/main/
+          cp MainActivity.java proj/app/src/main/java/com/example/kanakku/
+          cp index.html proj/app/src/main/assets/
+          cp ic_launcher.xml proj/app/src/main/res/mipmap-anydpi-v26/
+          cp ic_launcher_fg.xml proj/app/src/main/res/drawable/
+          cp ic_colors.xml proj/app/src/main/res/values/
+          cp file_paths.xml proj/app/src/main/res/xml/
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Build debug APK
+        working-directory: proj
+        run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Kanakku-APK
+          path: proj/app/build/outputs/apk/debug/app-debug.apk
